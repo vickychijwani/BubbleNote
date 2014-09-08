@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- padding -->
+    <dimen name="padding_inline">4dp</dimen>
+    <dimen name="padding_default">8dp</dimen>
+    <dimen name="padding_large">16dp</dimen>
+
+    <!-- text sizes -->
+    <dimen name="text_size_xsmall">12sp</dimen>
+    <dimen name="text_size_small">14sp</dimen>
+    <dimen name="text_size_xmedium">16sp</dimen>
+    <dimen name="text_size_medium">18sp</dimen>
+    <dimen name="text_size_large">22sp</dimen>
+    <dimen name="text_size_ultralarge">32sp</dimen>
+    <dimen name="text_size_hyperlarge">72sp</dimen>
+
+    <!-- view dimensions and spacing -->
+
+</resources>
