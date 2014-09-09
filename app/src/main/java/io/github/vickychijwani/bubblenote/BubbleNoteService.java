@@ -55,7 +55,7 @@ public class BubbleNoteService extends Service {
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.TYPE_PHONE,
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
                 PixelFormat.TRANSLUCENT);
         params.gravity = Gravity.TOP | Gravity.LEFT;
         params.x = mPos[0];
@@ -72,7 +72,6 @@ public class BubbleNoteService extends Service {
         contentSpring.addListener(new SpringListener() {
             @Override
             public void onSpringUpdate(Spring spring) {
-                //Log.d(TAG, "hardware acc = " + mContent.isHardwareAccelerated() + ", layer type = " + mContent.getLayerType());
                 float value = (float) spring.getCurrentValue();
                 float clampedValue = Math.min(Math.max(value, 0.0f), 1.0f);
                 mContent.setScaleX(value);
