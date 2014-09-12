@@ -3,18 +3,21 @@ package io.github.vickychijwani.bubblenote;
 import android.app.Service;
 import android.content.Intent;
 import android.graphics.PixelFormat;
+import android.os.Build;
 import android.os.IBinder;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.WindowManager;
-import android.widget.LinearLayout;
 
 import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringConfig;
 import com.facebook.rebound.SpringListener;
 import com.facebook.rebound.SpringSystem;
+import com.facebook.rebound.SpringUtil;
 
 public class BubbleNoteService extends Service {
 
@@ -22,7 +25,7 @@ public class BubbleNoteService extends Service {
     private static final int MOVE_THRESHOLD = 100;  // square of the threshold distance in pixels
 
     private WindowManager mWindowManager;
-    private LinearLayout mBubble;
+    private ViewGroup mBubble;
     private View mContent;
 
     private boolean mbExpanded = false;
@@ -41,15 +44,23 @@ public class BubbleNoteService extends Service {
         mWindowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
 
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
-        mBubble = (LinearLayout) inflater.inflate(R.layout.bubble, null, false);
+        mBubble = (ViewGroup) inflater.inflate(R.layout.bubble, null, false);
 
-        mContent = inflater.inflate(R.layout.note, mBubble, false);
-        mContent.setPivotX(0);
-        mContent.setPivotY(0);
+        mContent = mBubble.findViewById(R.id.content);
         mContent.setScaleX(0.0f);
         mContent.setScaleY(0.0f);
-        mContent.setAlpha(0.0f);
-        mBubble.addView(mContent, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1));
+
+        mBubble.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                mContent.setPivotX(mBubble.findViewById(R.id.bubble).getWidth() / 2);
+                if (Build.VERSION.SDK_INT >= 16) {
+                    mBubble.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                } else {
+                    mBubble.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                }
+            }
+        });
 
         final WindowManager.LayoutParams params = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
@@ -73,7 +84,7 @@ public class BubbleNoteService extends Service {
             @Override
             public void onSpringUpdate(Spring spring) {
                 float value = (float) spring.getCurrentValue();
-                float clampedValue = Math.min(Math.max(value, 0.0f), 1.0f);
+                float clampedValue = (float) SpringUtil.clamp(value, 0.0, 1.0);
                 mContent.setScaleX(value);
                 mContent.setScaleY(value);
                 mContent.setAlpha(clampedValue);
@@ -101,9 +112,9 @@ public class BubbleNoteService extends Service {
         bubbleSpring.addListener(new SpringListener() {
             @Override
             public void onSpringUpdate(Spring spring) {
-                float value = (float) spring.getCurrentValue();
-                params.x = (int) (mPos[0] * value);
-                params.y = (int) (mPos[1] * value);
+                double value = spring.getCurrentValue();
+                params.x = (int) (SpringUtil.mapValueFromRangeToRange(value, 0.0, 1.0, 0.0, mPos[0]));
+                params.y = (int) (SpringUtil.mapValueFromRangeToRange(value, 0.0, 1.0, 0.0, mPos[1]));
                 mWindowManager.updateViewLayout(mBubble, params);
                 if (spring.isOvershooting() && contentSpring.isAtRest()) {
                     contentSpring.setEndValue(1.0);
