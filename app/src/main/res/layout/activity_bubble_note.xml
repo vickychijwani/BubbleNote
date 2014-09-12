@@ -12,4 +12,30 @@
         android:layout_height="wrap_content"
         android:text="Show Chat Head"/>
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Spring tension"
+        android:textSize="@dimen/text_size_medium"
+        android:padding="@dimen/padding_default"/>
+
+    <SeekBar
+        android:id="@+id/spring_tension"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:max="1000"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Spring friction"
+        android:textSize="@dimen/text_size_medium"
+        android:padding="@dimen/padding_default"/>
+
+    <SeekBar
+        android:id="@+id/spring_friction"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:max="100"/>
+
 </LinearLayout>

@@ -32,6 +32,17 @@ public class BubbleNoteService extends Service {
     private boolean mbMoved = false;
     private int[] mPos = {0, -20};
 
+    private static Spring sBubbleSpring;
+    private static Spring sContentSpring;
+    public static int sSpringTension = 200;
+    public static int sSpringFriction = 20;
+
+    public static void setSpringConfig() {
+        SpringConfig config = sBubbleSpring.getSpringConfig();
+        config.tension = sSpringTension;
+        config.friction = sSpringFriction;
+    }
+
     @Override
     public IBinder onBind(Intent intent) {
         // Not used
@@ -66,7 +77,9 @@ public class BubbleNoteService extends Service {
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.TYPE_PHONE,
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
+                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+                        | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                        | WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
                 PixelFormat.TRANSLUCENT);
         params.gravity = Gravity.TOP | Gravity.LEFT;
         params.x = mPos[0];
@@ -75,12 +88,12 @@ public class BubbleNoteService extends Service {
 
 
         SpringSystem system = SpringSystem.create();
-        SpringConfig springConfig = new SpringConfig(200, 20);
+        SpringConfig springConfig = new SpringConfig(sSpringTension, sSpringFriction);
 
-        final Spring contentSpring = system.createSpring();
-        contentSpring.setSpringConfig(springConfig);
-        contentSpring.setCurrentValue(0.0);
-        contentSpring.addListener(new SpringListener() {
+        sContentSpring = system.createSpring();
+        sContentSpring.setSpringConfig(springConfig);
+        sContentSpring.setCurrentValue(0.0);
+        sContentSpring.addListener(new SpringListener() {
             @Override
             public void onSpringUpdate(Spring spring) {
                 float value = (float) spring.getCurrentValue();
@@ -106,18 +119,18 @@ public class BubbleNoteService extends Service {
             }
         });
 
-        final Spring bubbleSpring = system.createSpring();
-        bubbleSpring.setSpringConfig(springConfig);
-        bubbleSpring.setCurrentValue(1.0);
-        bubbleSpring.addListener(new SpringListener() {
+        sBubbleSpring = system.createSpring();
+        sBubbleSpring.setSpringConfig(springConfig);
+        sBubbleSpring.setCurrentValue(1.0);
+        sBubbleSpring.addListener(new SpringListener() {
             @Override
             public void onSpringUpdate(Spring spring) {
                 double value = spring.getCurrentValue();
                 params.x = (int) (SpringUtil.mapValueFromRangeToRange(value, 0.0, 1.0, 0.0, mPos[0]));
                 params.y = (int) (SpringUtil.mapValueFromRangeToRange(value, 0.0, 1.0, 0.0, mPos[1]));
                 mWindowManager.updateViewLayout(mBubble, params);
-                if (spring.isOvershooting() && contentSpring.isAtRest()) {
-                    contentSpring.setEndValue(1.0);
+                if (spring.isOvershooting() && sContentSpring.isAtRest()) {
+                    sContentSpring.setEndValue(1.0);
                 }
             }
 
@@ -167,12 +180,12 @@ public class BubbleNoteService extends Service {
                             params.height = WindowManager.LayoutParams.MATCH_PARENT;
                             params.flags &= ~WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
                             params.flags |= WindowManager.LayoutParams.FLAG_DIM_BEHIND;
-                            bubbleSpring.setEndValue(0.0);
+                            sBubbleSpring.setEndValue(0.0);
                         } else {
                             params.flags |= WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
                             params.flags &= ~WindowManager.LayoutParams.FLAG_DIM_BEHIND;
-                            bubbleSpring.setEndValue(1.0);
-                            contentSpring.setEndValue(0.0);
+                            sBubbleSpring.setEndValue(1.0);
+                            sContentSpring.setEndValue(0.0);
                         }
                         mbExpanded = ! mbExpanded;
                         mWindowManager.updateViewLayout(mBubble, params);
