@@ -60,6 +60,10 @@ public class BubbleNoteService extends Service {
         mContent = mBubble.findViewById(R.id.content);
         mContent.setScaleX(0.0f);
         mContent.setScaleY(0.0f);
+        ViewGroup.LayoutParams contentParams = mContent.getLayoutParams();
+        contentParams.width = Utils.getScreenWidth(this);
+        contentParams.height = Utils.getScreenHeight(this) - getResources().getDimensionPixelOffset(R.dimen.bubble_height);
+        mContent.setLayoutParams(contentParams);
 
         mBubble.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
@@ -106,6 +110,9 @@ public class BubbleNoteService extends Service {
             @Override
             public void onSpringAtRest(Spring spring) {
                 mContent.setLayerType(View.LAYER_TYPE_NONE, null);
+                if (spring.currentValueIsApproximately(0.0)) {
+                    hideContent();
+                }
             }
 
             @Override
@@ -136,11 +143,7 @@ public class BubbleNoteService extends Service {
 
             @Override
             public void onSpringAtRest(Spring spring) {
-                if (spring.currentValueIsApproximately(1.0)) {
-                    params.width = WindowManager.LayoutParams.WRAP_CONTENT;
-                    params.height = WindowManager.LayoutParams.WRAP_CONTENT;
-                    mWindowManager.updateViewLayout(mBubble, params);
-                }
+
             }
 
             @Override
@@ -170,14 +173,13 @@ public class BubbleNoteService extends Service {
                         initialY = params.y;
                         initialTouchX = event.getRawX();
                         initialTouchY = event.getRawY();
+                        showContent();
                         return true;
                     case MotionEvent.ACTION_UP:
                         if (mbMoved) return true;
                         if (! mbExpanded) {
                             mBubble.getLocationOnScreen(mPos);
                             mPos[1] -= Utils.getStatusBarHeight(BubbleNoteService.this);
-                            params.width = WindowManager.LayoutParams.MATCH_PARENT;
-                            params.height = WindowManager.LayoutParams.MATCH_PARENT;
                             params.flags &= ~WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
                             params.flags |= WindowManager.LayoutParams.FLAG_DIM_BEHIND;
                             sBubbleSpring.setEndValue(0.0);
@@ -197,6 +199,7 @@ public class BubbleNoteService extends Service {
                         params.y = initialY + deltaY;
                         if (deltaX * deltaX + deltaY * deltaY >= MOVE_THRESHOLD) {
                             mbMoved = true;
+                            hideContent();
                             mWindowManager.updateViewLayout(mBubble, params);
                         }
                         return true;
@@ -214,6 +217,14 @@ public class BubbleNoteService extends Service {
         if (mBubble != null) {
             mWindowManager.removeView(mBubble);
         }
+    }
+
+    private void showContent() {
+        mContent.setVisibility(View.VISIBLE);
+    }
+
+    private void hideContent() {
+        mContent.setVisibility(View.GONE);
     }
 
 }

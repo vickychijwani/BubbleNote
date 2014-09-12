@@ -16,5 +16,7 @@
     <dimen name="text_size_hyperlarge">72sp</dimen>
 
     <!-- view dimensions and spacing -->
+    <dimen name="bubble_width">48dp</dimen>
+    <dimen name="bubble_height">48dp</dimen>
 
 </resources>
